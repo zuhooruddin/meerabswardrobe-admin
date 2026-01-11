@@ -144,6 +144,7 @@ const CreateProduct = (props) => {
               rowsPerPageRouter: router.query.rowsPerPageRouter,
             },
           });
+        }
         return res;
       })
       .catch((error) => {
