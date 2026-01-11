@@ -72,6 +72,12 @@ const CreateProduct = (props) => {
     salePrice: "",
     author: "",
     manufacturer: "",
+    // Clothing-specific fields
+    brand: "",
+    product_category: "",
+    base_price: "",
+    discount_price: "",
+    is_active: true,
     isNewArrival: "",
     newArrivalTill: "",
     youtube_link: "",
@@ -125,22 +131,19 @@ const CreateProduct = (props) => {
             }
             addItemGallery(galleryData, res.data.item.id);
           }
-          toast.success("Product Updated Successfully", {
+          toast.success("Product Created Successfully", {
             position: toast.POSITION.TOP_RIGHT,
           });
-          window.location.href = '/admin/products';
-
-        }
-        // window.location.href = '/admin/products';
-        // router.back();
-        router.push({
-          pathname: `/admin/products`,
-          query: {
-            pageIndexRouter: router.query.pageIndexRouter,
-            scrollPosition: router.query.scrollPosition,
-            rowsPerPageRouter: router.query.rowsPerPageRouter,
-          },
-        });
+          
+          // Redirect to edit page so user can add variants
+          router.push({
+            pathname: `/admin/products/${res.data.item.id}`,
+            query: {
+              pageIndexRouter: router.query.pageIndexRouter,
+              scrollPosition: router.query.scrollPosition,
+              rowsPerPageRouter: router.query.rowsPerPageRouter,
+            },
+          });
         return res;
       })
       .catch((error) => {
@@ -297,6 +300,13 @@ const CreateProduct = (props) => {
       formData.append("newArrivalTill", values["newArrivalTill"] || null);
       formData.append("isFeatured", values["isFeatured"] || null);
       formData.append("discount", values["discount"] || null);
+      
+      // Clothing-specific fields
+      formData.append("brand", values["brand"] || '');
+      formData.append("product_category", values["product_category"] || '');
+      formData.append("base_price", values["base_price"] || values["salePrice"] || null);
+      formData.append("discount_price", values["discount_price"] || null);
+      formData.append("is_active", values["is_active"] !== false ? true : false);
 
       formData.append("extPosId", 0);
 
