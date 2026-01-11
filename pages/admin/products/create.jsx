@@ -93,6 +93,7 @@ const CreateProduct = (props) => {
     childCat: [],
     galleryImages: [],
     tags: [],
+    variants: [], // Store variants to be created after product creation
   };
   const [disableButtonCheck, setdisableButtonCheck] = useState(false);
   function convertToSlug(Text) {
@@ -101,6 +102,39 @@ const CreateProduct = (props) => {
       .replace(/[-]+/g, "-")
       .replace(/[^\w-]+|_/g, "");
   }
+  async function addProductVariants(variants, itemId) {
+    if (!variants || variants.length === 0) return;
+    
+    for (const variant of variants) {
+      try {
+        await axiosInstance.post(
+          server_ip + 'addProductVariant',
+          {
+            item: itemId,
+            color: variant.color,
+            color_hex: variant.color_hex,
+            size: variant.size,
+            sku: variant.sku,
+            stock_quantity: variant.stock_quantity,
+            variant_price: variant.variant_price || null,
+            status: variant.status || 1,
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer ' + session.accessToken,
+            },
+          }
+        );
+      } catch (error) {
+        console.error('Error creating variant:', error);
+        toast.error(`Failed to create variant: ${variant.color} - ${variant.size}`, {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
+    }
+  }
+
   async function addItem(data, values, setdisableButtonCheck) {
     const myNewModel = await axiosInstance
       .post(server_ip + `addItem`, data, {
@@ -109,11 +143,13 @@ const CreateProduct = (props) => {
           Authorization: "Bearer " + session.accessToken,
         },
       })
-      .then((res) => {
+      .then(async (res) => {
         if (res.status == 200) {
           setdisableButtonCheck(true);
+          const itemId = res.data.item.id;
+          
           if (Array.isArray(values["category"])) {
-            addItemCategory(values["category"], res.data.item.id);
+            addItemCategory(values["category"], itemId);
           }
 
           const galleryData = new FormData();
@@ -129,15 +165,24 @@ const CreateProduct = (props) => {
                   values["galleryFile"][i].name.split(".")[1]
               );
             }
-            addItemGallery(galleryData, res.data.item.id);
+            addItemGallery(galleryData, itemId);
           }
+          
+          // Create variants if any were added
+          if (values.variants && Array.isArray(values.variants) && values.variants.length > 0) {
+            await addProductVariants(values.variants, itemId);
+            toast.success(`${values.variants.length} variant(s) created successfully`, {
+              position: toast.POSITION.TOP_RIGHT,
+            });
+          }
+          
           toast.success("Product Created Successfully", {
             position: toast.POSITION.TOP_RIGHT,
           });
           
-          // Redirect to edit page so user can add variants
+          // Redirect to edit page so user can manage variants
           router.push({
-            pathname: `/admin/products/${res.data.item.id}`,
+            pathname: `/admin/products/${itemId}`,
             query: {
               pageIndexRouter: router.query.pageIndexRouter,
               scrollPosition: router.query.scrollPosition,
@@ -311,6 +356,8 @@ const CreateProduct = (props) => {
 
       formData.append("extPosId", 0);
 
+      // Variants will be handled separately after product creation
+      // They are stored in values.variants array
       addItem(formData, values, setdisableButtonCheck);
     }
   };

@@ -14,6 +14,7 @@ import Image from 'next/image'
 import { server_ip } from "utils/backend_server_ip.jsx"
 import DropZone from "components/DropZone";
 import CloseIcon from '@mui/icons-material/Close';
+import VariantManagerCreate from "./VariantManagerCreate";
 import VariantManager from "./VariantManager";
 
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -94,10 +95,12 @@ const CreateProductForm = (props) => {
         </Alert>
       </Snackbar>
       <Formik
-  
         initialValues={initialValues}
         validationSchema={validationSchema} 
-        onSubmit={handleFormSubmit}
+        onSubmit={(values) => {
+          // Include variants in form submission
+          handleFormSubmit({ ...values, variants });
+        }}
       >
         {({
           values,
@@ -817,23 +820,11 @@ const CreateProductForm = (props) => {
               </StyledTabPanel>
 
               <StyledTabPanel value="variants">
-                {values.id ? (
-                  <VariantManager 
-                    productId={values.id} 
-                    productSku={values.sku}
-                  />
-                ) : (
-                  <Box sx={{ p: 3, textAlign: 'center' }}>
-                    <H4 sx={{ mb: 2, color: 'info.main' }}>
-                      Variants will be available after product creation
-                    </H4>
-                    <p style={{ color: 'text.secondary' }}>
-                      Please save the product first, then you can add color and size variants.
-                      <br />
-                      After creating the product, you'll be redirected to the edit page where you can manage variants.
-                    </p>
-                  </Box>
-                )}
+                <VariantManagerCreate
+                  variants={variants}
+                  setVariants={setVariants}
+                  productSku={values.sku}
+                />
               </StyledTabPanel>
               
             </TabContext>
