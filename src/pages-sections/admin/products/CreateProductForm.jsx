@@ -64,6 +64,7 @@ const CreateProductForm = (props) => {
  
   
   const [imgsSrc, setImgsSrc] = useState([]);
+  const [variants, setVariants] = useState(initialValues?.variants || []);
 
 
 
