@@ -11,6 +11,7 @@ import { Facebook, Instagram, Twitter, YouTube } from "@mui/icons-material";
 import 'react-dropdown-tree-select/dist/styles.css'
 import Image from 'next/image'
 import {server_ip} from "utils/backend_server_ip.jsx"
+import VariantManager from "./VariantManager";
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;
@@ -107,6 +108,7 @@ console.log("Proper",props)
                   <Tab label="SEO" value="seo" disableRipple />
                   <Tab label="Gallery Images" value="gallery-images" disableRipple />
                   <Tab label="Stock" value="stock" disableRipple />
+                  <Tab label="Variants (Color & Size)" value="variants" disableRipple />
                 </StyledTabList>
               </Box>
 
@@ -556,6 +558,13 @@ console.log("Proper",props)
                   />
                 </Grid>
               </Grid>
+              </StyledTabPanel>
+
+              <StyledTabPanel value="variants">
+                <VariantManager 
+                  productId={values.id} 
+                  productSku={values.sku}
+                />
               </StyledTabPanel>
             </TabContext>
 

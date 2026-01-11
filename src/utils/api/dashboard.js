@@ -578,6 +578,73 @@ const getChargesConfiguration = async (ConfigId,accessToken) => {
   return response.data;
 };
 
+// ============================== Product Variants ===============================
+const getProductVariants = async (itemId, accessToken) => {
+  const response = await axios({
+    method: 'get',
+    url: server_ip + 'getProductVariants',
+    params: {
+      item_id: itemId
+    },
+    headers: {
+      "Authorization": 'Bearer ' + accessToken
+    },
+  });
+  return response.data;
+  
+};
+
+const getProductVariantsAdmin = async (itemId, accessToken) => {
+  const response = await axios({
+    method: 'get',
+    url: server_ip + 'getProductVariantsAdmin',
+    params: {
+      item_id: itemId
+    },
+    headers: {
+      "Authorization": 'Bearer ' + accessToken
+    },
+  });
+  return response.data;
+};
+
+const addProductVariant = async (variantData, accessToken) => {
+  const response = await axios({
+    method: 'post',
+    url: server_ip + 'addProductVariant',
+    headers: {
+      'content-type': 'application/json',
+      "Authorization": 'Bearer ' + accessToken
+    },
+    data: variantData
+  });
+  return response.data;
+};
+
+const updateProductVariant = async (variantId, variantData, accessToken) => {
+  const response = await axios({
+    method: 'patch',
+    url: server_ip + `updateProductVariant/${variantId}`,
+    headers: {
+      'content-type': 'application/json',
+      "Authorization": 'Bearer ' + accessToken
+    },
+    data: variantData
+  });
+  return response.data;
+};
+
+const deleteProductVariant = async (variantId, accessToken) => {
+  const response = await axios({
+    method: 'delete',
+    url: server_ip + `deleteProductVariant/${variantId}`,
+    headers: {
+      "Authorization": 'Bearer ' + accessToken
+    },
+  });
+  return response.data;
+};
+
 const api = {
   brands,
   orders,
@@ -649,7 +716,15 @@ const api = {
   getCountryConfiguration,
   getCourier,
   getAllCourier,
-  getChargesConfiguration
+
+  getChargesConfiguration,
+  
+  // Product Variants
+  getProductVariants,
+  getProductVariantsAdmin,
+  addProductVariant,
+  updateProductVariant,
+  deleteProductVariant
 };
 
 export default api;

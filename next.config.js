@@ -26,7 +26,7 @@ module.exports = {
     theme: "DEFAULT",
   },
   images: {
-    domains: ["https://chitralhive.com/api/"],
+    domains: ["https://api.meerabs.com/api/"],
   },
 };
 
