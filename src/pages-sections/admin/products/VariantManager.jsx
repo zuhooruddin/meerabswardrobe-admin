@@ -22,11 +22,12 @@ import {
   Typography,
   Alert,
 } from "@mui/material";
-import { Add, Edit, Delete, Save, Cancel } from "@mui/icons-material";
+import { Add, Edit, Delete, Save, Cancel, AddCircle } from "@mui/icons-material";
 import { H4, H6 } from "components/Typography";
 import api from "utils/api/dashboard";
 import { toast } from "react-toastify";
 import { useSession } from "next-auth/react";
+import { Checkbox, FormControlLabel, Divider } from "@mui/material";
 
 const SIZE_CHOICES = [
   { value: "XS", label: "Extra Small" },
@@ -49,6 +50,7 @@ const VariantManager = ({ productId, productSku }) => {
   const [variants, setVariants] = useState([]);
   const [loading, setLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
+  const [openBulkDialog, setOpenBulkDialog] = useState(false);
   const [editingVariant, setEditingVariant] = useState(null);
   const [formData, setFormData] = useState({
     color: "",
@@ -57,6 +59,16 @@ const VariantManager = ({ productId, productSku }) => {
     sku: "",
     stock_quantity: 0,
     variant_price: "",
+    status: 1,
+  });
+
+  // Bulk add form data (multiple sizes for one color)
+  const [bulkFormData, setBulkFormData] = useState({
+    color: "",
+    color_hex: "#000000",
+    selectedSizes: [],
+    defaultStock: 0,
+    defaultPrice: "",
     status: 1,
   });
 
@@ -88,9 +100,113 @@ const VariantManager = ({ productId, productSku }) => {
 
   const generateSku = (color, size) => {
     if (!productSku) return "";
-    const colorCode = color.substring(0, 3).toUpperCase();
+    const colorCode = color.substring(0, 3).toUpperCase().replace(/\s/g, '');
     const sizeCode = size;
     return `${productSku}-${colorCode}-${sizeCode}`;
+  };
+
+  const handleOpenBulkDialog = () => {
+    setBulkFormData({
+      color: "",
+      color_hex: "#000000",
+      selectedSizes: [],
+      defaultStock: 0,
+      defaultPrice: "",
+      status: 1,
+    });
+    setOpenBulkDialog(true);
+  };
+
+  const handleCloseBulkDialog = () => {
+    setOpenBulkDialog(false);
+    setBulkFormData({
+      color: "",
+      color_hex: "#000000",
+      selectedSizes: [],
+      defaultStock: 0,
+      defaultPrice: "",
+      status: 1,
+    });
+  };
+
+  const handleBulkInputChange = (field, value) => {
+    setBulkFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSizeToggle = (size) => {
+    setBulkFormData((prev) => {
+      const selectedSizes = prev.selectedSizes.includes(size)
+        ? prev.selectedSizes.filter((s) => s !== size)
+        : [...prev.selectedSizes, size];
+      return { ...prev, selectedSizes };
+    });
+  };
+
+  const handleBulkSave = async () => {
+    if (!session?.accessToken) {
+      toast.error("Session expired. Please login again.");
+      return;
+    }
+
+    if (!bulkFormData.color) {
+      toast.error("Please enter a color");
+      return;
+    }
+
+    if (bulkFormData.selectedSizes.length === 0) {
+      toast.error("Please select at least one size");
+      return;
+    }
+
+    try {
+      // Create variants for each selected size
+      const promises = bulkFormData.selectedSizes.map(async (size) => {
+        const sku = generateSku(bulkFormData.color, size);
+        
+        // Check if variant already exists
+        const exists = variants.some(
+          (v) => v.color === bulkFormData.color && v.size === size
+        );
+
+        if (exists) {
+          return { success: false, message: `Variant ${bulkFormData.color} - ${size} already exists` };
+        }
+
+        const variantPayload = {
+          item: productId,
+          color: bulkFormData.color,
+          color_hex: bulkFormData.color_hex,
+          size: size,
+          sku: sku,
+          stock_quantity: parseInt(bulkFormData.defaultStock) || 0,
+          variant_price: bulkFormData.defaultPrice ? parseFloat(bulkFormData.defaultPrice) : null,
+          status: parseInt(bulkFormData.status),
+        };
+
+        const response = await api.addProductVariant(
+          variantPayload,
+          session.accessToken
+        );
+        return response;
+      });
+
+      const results = await Promise.all(promises);
+      const successCount = results.filter((r) => r.success).length;
+      const failCount = results.filter((r) => !r.success).length;
+
+      if (successCount > 0) {
+        toast.success(`Successfully added ${successCount} variant(s) for ${bulkFormData.color}`);
+        fetchVariants();
+        handleCloseBulkDialog();
+      }
+      
+      if (failCount > 0) {
+        toast.warning(`${failCount} variant(s) could not be added (may already exist)`);
+      }
+    } catch (error) {
+      console.error("Error saving bulk variants:", error);
+      toast.error("Error saving variants");
+    }
   };
 
   const handleOpenDialog = (variant = null) => {
@@ -235,19 +351,30 @@ const VariantManager = ({ productId, productSku }) => {
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <H4>Product Variants (Color & Size)</H4>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<Add />}
-          onClick={() => handleOpenDialog()}
-        >
-          Add Variant
-        </Button>
+        <Box display="flex" gap={1}>
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<AddCircle />}
+            onClick={handleOpenBulkDialog}
+            sx={{ mr: 1 }}
+          >
+            Add Multiple Sizes
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<Add />}
+            onClick={() => handleOpenDialog()}
+          >
+            Add Single Variant
+          </Button>
+        </Box>
       </Box>
 
       {variants.length === 0 && !loading && (
         <Alert severity="info" sx={{ mb: 2 }}>
-          No variants added yet. Click "Add Variant" to create color and size combinations.
+          No variants added yet. Use "Add Multiple Sizes" to quickly add all sizes for a color, or "Add Single Variant" for individual variants.
         </Alert>
       )}
 
@@ -437,6 +564,135 @@ const VariantManager = ({ productId, productSku }) => {
             startIcon={<Save />}
           >
             {editingVariant ? "Update" : "Add"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Bulk Add Dialog - Multiple Sizes for One Color */}
+      <Dialog open={openBulkDialog} onClose={handleCloseBulkDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          <Box display="flex" alignItems="center" gap={1}>
+            <AddCircle color="primary" />
+            <Typography variant="h6">Add Multiple Sizes for One Color</Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Color Name"
+                value={bulkFormData.color}
+                onChange={(e) => handleBulkInputChange("color", e.target.value)}
+                required
+                placeholder="e.g., Red, Blue, Black"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Color Hex Code"
+                type="color"
+                value={bulkFormData.color_hex}
+                onChange={(e) => handleBulkInputChange("color_hex", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Divider sx={{ my: 1 }} />
+              <H6 sx={{ mb: 1.5, fontWeight: 600 }}>Select Sizes (Multiple Selection)</H6>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
+                  gap: 1,
+                  p: 2,
+                  border: "1px solid #e0e0e0",
+                  borderRadius: 2,
+                  bgcolor: "#fafafa",
+                }}
+              >
+                {SIZE_CHOICES.map((sizeOption) => (
+                  <FormControlLabel
+                    key={sizeOption.value}
+                    control={
+                      <Checkbox
+                        checked={bulkFormData.selectedSizes.includes(sizeOption.value)}
+                        onChange={() => handleSizeToggle(sizeOption.value)}
+                        color="primary"
+                      />
+                    }
+                    label={sizeOption.label}
+                  />
+                ))}
+              </Box>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Default Stock Quantity"
+                type="number"
+                value={bulkFormData.defaultStock}
+                onChange={(e) => handleBulkInputChange("defaultStock", e.target.value)}
+                required
+                inputProps={{ min: 0 }}
+                helperText="Applied to all selected sizes"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Default Variant Price (Optional)"
+                type="number"
+                value={bulkFormData.defaultPrice}
+                onChange={(e) => handleBulkInputChange("defaultPrice", e.target.value)}
+                helperText="Leave empty to use product base price"
+                inputProps={{ min: 0 }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                select
+                label="Status"
+                value={bulkFormData.status}
+                onChange={(e) => handleBulkInputChange("status", e.target.value)}
+              >
+                {STATUS_CHOICES.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            {bulkFormData.selectedSizes.length > 0 && (
+              <Grid item xs={12}>
+                <Alert severity="info">
+                  <strong>Preview:</strong> {bulkFormData.selectedSizes.length} size(s) will be added for color "{bulkFormData.color}":
+                  <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2 }}>
+                    {bulkFormData.selectedSizes.map((size) => (
+                      <li key={size}>
+                        {size} - SKU: {generateSku(bulkFormData.color, size)}
+                      </li>
+                    ))}
+                  </Box>
+                </Alert>
+              </Grid>
+            )}
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseBulkDialog} startIcon={<Cancel />}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleBulkSave}
+            variant="contained"
+            color="primary"
+            startIcon={<Save />}
+            disabled={!bulkFormData.color || bulkFormData.selectedSizes.length === 0}
+          >
+            Add {bulkFormData.selectedSizes.length} Variant(s)
           </Button>
         </DialogActions>
       </Dialog>
