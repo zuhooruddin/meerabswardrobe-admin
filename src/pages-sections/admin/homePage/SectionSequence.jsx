@@ -50,7 +50,7 @@ const SectionSequence = (props) => {
     const { boxOrderData, allCategoriesData, value, SubCategoryValue } = props;
 
     useEffect(() => {
-        if(Sub_Category !== undefined && boxOrderData !== undefined && allCategoriesData !== undefined && value?.id){
+        if(boxOrderData !== undefined && allCategoriesData !== undefined && value?.id){
             // Move variable declarations inside useEffect to avoid assignment warnings
             let newSub_CategoryList = []
             let Sub_CategoryFilter = []
@@ -60,6 +60,10 @@ const SectionSequence = (props) => {
             Sub_CategoryFilter = boxOrderData.filter(item => item.type === "section_subcategory" && item.parent === value?.id);
             Sub_CategoryFilter.sort((a, b) => a.sequenceNo - b.sequenceNo);
             CategorySub_CategoryData = allCategoriesData.filter(item =>item.parentId_id === value?.id)
+            
+            console.log("Loading subcategories for parent:", value?.id);
+            console.log("Sub_CategoryFilter:", Sub_CategoryFilter.length);
+            console.log("CategorySub_CategoryData:", CategorySub_CategoryData.length);
             if (Sub_CategoryFilter.length === 0) {
                 length = (CategorySub_CategoryData.length > SubCategoryValue) ? SubCategoryValue : CategorySub_CategoryData.length;
                 for (let i = 0; i < length; i++) {
@@ -120,7 +124,15 @@ console.log("Filtered",filteredCategory)
     console.log("Filtered Parebnt ",filteredParentData )
 
     let parentId=props.value?.id; //parent id => for comparison in child component
-    let size = (Sub_Category.length > props.SubCategoryValue) ? props.SubCategoryValue : Sub_Category.length;
+    // Use SubCategoryValue to determine how many subcategory fields to show
+    // Default to 4 if SubCategoryValue is not set yet
+    let size = props.SubCategoryValue || 4;
+    
+    // Get available subcategories for the selected parent
+    const availableSubcategories = props.allCategoriesData?.filter(item => item.parentId_id === parentId) || [];
+    console.log("Available subcategories:", availableSubcategories.length, "for parentId:", parentId);
+    console.log("SubCategoryValue:", props.SubCategoryValue, "size:", size);
+    console.log("Sub_Category state:", Sub_Category);
     
     return (
             <>
@@ -131,6 +143,7 @@ console.log("Filtered",filteredCategory)
                         value={props.value || null}
                         options={filteredParentData}
                         getOptionLabel={(option) => `${option.name}`}
+                        isOptionEqualToValue={(option, value) => option.id === value?.id}
                         onChange = {handleClick}
                         renderInput={(params) => (
                             <TextField
@@ -171,14 +184,20 @@ console.log("Filtered",filteredCategory)
                         {"Select Subcategories"}
                     </DialogTitle>
                     <DialogContent>
-                        <Box sx={{
-                            display: 'grid', 
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))',
-                        }}>
-                            {(Array(size).fill('').map((val, index) => index)).map((ind) => (
-                                <Subcategories key={"Subcategory"+ind} id={"Subcategory"+ind} value={Sub_Category[ind]} Sub_Category={Sub_Category} allCategoriesData={props.allCategoriesData} index={ind} handleChange={handleChange3} label={"Subcategory "+(ind+1)} parentId={parentId}/>
-                            ))}
-                        </Box>
+                        {!parentId ? (
+                            <Box sx={{ p: 2, textAlign: 'center' }}>
+                                Please select a section first
+                            </Box>
+                        ) : (
+                            <Box sx={{
+                                display: 'grid', 
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))',
+                            }}>
+                                {(Array(size).fill('').map((val, index) => index)).map((ind) => (
+                                    <Subcategories key={"Subcategory"+ind} id={"Subcategory"+ind} value={Sub_Category[ind]} Sub_Category={Sub_Category} allCategoriesData={props.allCategoriesData} index={ind} handleChange={handleChange3} label={"Subcategory "+(ind+1)} parentId={parentId}/>
+                                ))}
+                            </Box>
+                        )}
                     </DialogContent>
                     <DialogActions>
                         <Button variant="contained" color="secondary" onClick={handleClose}>
