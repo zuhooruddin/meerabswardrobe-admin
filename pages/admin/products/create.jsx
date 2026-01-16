@@ -179,16 +179,16 @@ const CreateProduct = (props) => {
           toast.success("Product Created Successfully", {
             position: toast.POSITION.TOP_RIGHT,
           });
-          
+
           // Redirect to edit page so user can manage variants
-          router.push({
+        router.push({
             pathname: `/admin/products/${itemId}`,
-            query: {
-              pageIndexRouter: router.query.pageIndexRouter,
-              scrollPosition: router.query.scrollPosition,
-              rowsPerPageRouter: router.query.rowsPerPageRouter,
-            },
-          });
+          query: {
+            pageIndexRouter: router.query.pageIndexRouter,
+            scrollPosition: router.query.scrollPosition,
+            rowsPerPageRouter: router.query.rowsPerPageRouter,
+          },
+        });
         }
         return res;
       })

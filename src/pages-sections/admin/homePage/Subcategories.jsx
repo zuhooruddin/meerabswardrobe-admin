@@ -8,8 +8,8 @@ const Subcategories = (props) => {
     }
     
     const filteredCategory = props.allCategoriesData.filter(item=>item.parentId_id === props.parentId)
-    const filteredChildCategory = filteredCategory.map((item) => ({ sequenceNo:props.index+1, image: item.icon, category_slug: item.slug, name: item.name, id: item.id, parent: item.parentId_id, type: "section_subcategory"}))
-    const filteredChildData = filteredChildCategory.filter(({ id: id1 }) => !props.Sub_Category.some(({ id: id2 }) => id1 === id2) || id1===props.value.id)
+    const filteredChildCategory = filteredCategory.map((item) => ({ sequenceNo:props.index+1, image: item?.icon || '', category_slug: item?.slug || '', name: item?.name || '', id: item?.id || '', parent: item?.parentId_id || null, type: "section_subcategory"}))
+    const filteredChildData = filteredChildCategory.filter(({ id: id1 }) => !props.Sub_Category.some(({ id: id2 }) => id1 === id2) || id1===(props.value?.id))
     
     return (
         <>

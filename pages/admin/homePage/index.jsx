@@ -85,8 +85,10 @@ export default function HomePageSetup({ props }) {
 
 
 
-      for (let i = 0; i < BoxValue; i++) {
-        newIndividualBoxOrderList.push({ sequenceNo: i+1, image: allCategoriesData[i].icon, category_slug: allCategoriesData[i].slug, name: allCategoriesData[i].name, id: allCategoriesData[i].id, type: 'box', parent: allCategoriesData[i].parentId_id});
+      for (let i = 0; i < BoxValue && i < allCategoriesData.length; i++) {
+        if (allCategoriesData[i]) {
+          newIndividualBoxOrderList.push({ sequenceNo: i+1, image: allCategoriesData[i]?.icon || '', category_slug: allCategoriesData[i]?.slug || '', name: allCategoriesData[i]?.name || '', id: allCategoriesData[i]?.id || '', type: 'box', parent: allCategoriesData[i]?.parentId_id || null});
+        }
       }
       console.log("New ind", newIndividualBoxOrderList)
 
@@ -103,8 +105,10 @@ export default function HomePageSetup({ props }) {
         }
         // here
         let filteredAllCategories = allCategoriesData.filter(({ id: id1 }) => !newIndividualBoxOrderList.some(({ id: id2 }) => id1 === id2))
-        for (let i = boxOrderDataFilter.length; i < BoxValue; i++) {
-          newIndividualBoxOrderList.push({ sequenceNo: i+1, image: filteredAllCategories[i].icon, category_slug: filteredAllCategories[i].slug, name: filteredAllCategories[i].name, id: filteredAllCategories[i].id, type: 'box', parent: filteredAllCategories[i].parentId_id});
+        for (let i = boxOrderDataFilter.length; i < BoxValue && i < filteredAllCategories.length; i++) {
+          if (filteredAllCategories[i]) {
+            newIndividualBoxOrderList.push({ sequenceNo: i+1, image: filteredAllCategories[i]?.icon || '', category_slug: filteredAllCategories[i]?.slug || '', name: filteredAllCategories[i]?.name || '', id: filteredAllCategories[i]?.id || '', type: 'box', parent: filteredAllCategories[i]?.parentId_id || null});
+          }
         }
       }
       else{
@@ -124,8 +128,10 @@ export default function HomePageSetup({ props }) {
     // ================================================================================================ SectionValue categorySectionData sectionDataFilter
     let categorySectionData = allCategoriesData.filter(item => item.parentId_id === null && item.isBrand === false)
     if (sectionDataFilter.length === 0){
-      for (let i = 0; i < SectionValue; i++) {
-        newSection_SequenceList.push({ sequenceNo: i+1, image: categorySectionData[i].icon, category_slug: categorySectionData[i].slug, name: categorySectionData[i].name, id: categorySectionData[i].id, type: 'section', parent: categorySectionData[i].parentId_id});
+      for (let i = 0; i < SectionValue && i < categorySectionData.length; i++) {
+        if (categorySectionData[i]) {
+          newSection_SequenceList.push({ sequenceNo: i+1, image: categorySectionData[i]?.icon || '', category_slug: categorySectionData[i]?.slug || '', name: categorySectionData[i]?.name || '', id: categorySectionData[i]?.id || '', type: 'section', parent: categorySectionData[i]?.parentId_id || null});
+        }
       }
     }
     else if (sectionDataFilter.length === SectionValue){
@@ -139,8 +145,10 @@ export default function HomePageSetup({ props }) {
           newSection_SequenceList.push({ sequenceNo: sectionDataFilter[i].sequenceNo, image: sectionDataFilter[i].image, category_slug: sectionDataFilter[i].category_slug, name: sectionDataFilter[i].category_name, id: sectionDataFilter[i].category_id_id, type: sectionDataFilter[i].type, parent: sectionDataFilter[i].parent});
         }
         let filteredAllCategories_seq = categorySectionData.filter(({ id: id1 }) => !newSection_SequenceList.some(({ id: id2 }) => id1 === id2))
-        for (let i = sectionDataFilter.length; i < SectionValue; i++) {
-          newSection_SequenceList.push({ sequenceNo: i+1, image: filteredAllCategories_seq[i].icon, category_slug: filteredAllCategories_seq[i].slug, name: filteredAllCategories_seq[i].name, id: filteredAllCategories_seq[i].id, type: 'section', parent: filteredAllCategories_seq[i].parentId_id});
+        for (let i = sectionDataFilter.length; i < SectionValue && i < filteredAllCategories_seq.length; i++) {
+          if (filteredAllCategories_seq[i]) {
+            newSection_SequenceList.push({ sequenceNo: i+1, image: filteredAllCategories_seq[i]?.icon || '', category_slug: filteredAllCategories_seq[i]?.slug || '', name: filteredAllCategories_seq[i]?.name || '', id: filteredAllCategories_seq[i]?.id || '', type: 'section', parent: filteredAllCategories_seq[i]?.parentId_id || null});
+          }
         }
       }
       else{

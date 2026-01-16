@@ -46,6 +46,9 @@ const SectionSequence = (props) => {
         }
 
         // all parent categories
+        if (!props.allCategoriesData) {
+            return <p>Loading...</p>;
+        }
         
         let filteredParent = props.allCategoriesData.filter(item => item.parentId_id === null && item.isBrand === false)
         let filteredCategory = [];
@@ -53,13 +56,13 @@ const SectionSequence = (props) => {
         for(let i=0; i < filteredParent.length; i++){
             filteredCategory = props.allCategoriesData.filter(item=>item.parentId_id === filteredParent[i].id)
             loopFlag.current = true;
-            if (filteredCategory.length > 0 && loopFlag.current === true) {
-                newfilteredCategory.push({ sequenceNo:props.index+1, image: filteredParent[i].icon, category_slug: filteredParent[i].slug, name: filteredParent[i].name, id: filteredParent[i].id, type: "section", parent: filteredParent[i].parentId_id})
+            if (filteredCategory.length > 0 && loopFlag.current === true && filteredParent[i]) {
+                newfilteredCategory.push({ sequenceNo:props.index+1, image: filteredParent[i]?.icon || '', category_slug: filteredParent[i]?.slug || '', name: filteredParent[i]?.name || '', id: filteredParent[i]?.id || '', type: "section", parent: filteredParent[i]?.parentId_id || null})
                 loopFlag.current = false;
             }
         }
 console.log("Filtered",filteredCategory)
-        const filteredParentData = newfilteredCategory.filter(({ id: id1 }) => !props.Section_Sequence.some(({ id: id2 }) => id1 === id2) || id1===props.value.id)
+        const filteredParentData = newfilteredCategory.filter(({ id: id1 }) => !props.Section_Sequence.some(({ id: id2 }) => id1 === id2) || id1===(props.value?.id))
         console.log("Filtered Parebnt ",filteredParentData )
 
         // ============================================subcategories loop============================================
@@ -68,7 +71,7 @@ console.log("Filtered",filteredCategory)
         const { boxOrderData, allCategoriesData, value, SubCategoryValue } = props;
 
         useEffect(() => {
-            if(Sub_Category !== undefined && boxOrderData !== undefined && allCategoriesData !== undefined){
+            if(Sub_Category !== undefined && boxOrderData !== undefined && allCategoriesData !== undefined && value?.id){
                 // Move variable declarations inside useEffect to avoid assignment warnings
                 let newSub_CategoryList = []
                 let Sub_CategoryFilter = []
@@ -85,13 +88,15 @@ console.log("Filtered",filteredCategory)
                 //     setSub_Category(newSub_CategoryList);
                 // }
                 // else{
-                    Sub_CategoryFilter = boxOrderData.filter(item => item.type === "section_subcategory" && item.parent === value.id);
+                    Sub_CategoryFilter = boxOrderData.filter(item => item.type === "section_subcategory" && item.parent === value?.id);
                     Sub_CategoryFilter.sort((a, b) => a.sequenceNo - b.sequenceNo);
-                    CategorySub_CategoryData = allCategoriesData.filter(item =>item.parentId_id === value.id)
+                    CategorySub_CategoryData = allCategoriesData.filter(item =>item.parentId_id === value?.id)
                     if (Sub_CategoryFilter.length === 0) {
                         length = (CategorySub_CategoryData.length > SubCategoryValue) ? SubCategoryValue : CategorySub_CategoryData.length;
                         for (let i = 0; i < length; i++) {
-                            newSub_CategoryList.push({ sequenceNo:i+1, image: CategorySub_CategoryData[i].icon, category_slug: CategorySub_CategoryData[i].slug, name: CategorySub_CategoryData[i].name, id: CategorySub_CategoryData[i].id, parent: CategorySub_CategoryData[i].parentId_id, type: "section_subcategory"});
+                            if (CategorySub_CategoryData[i]) {
+                                newSub_CategoryList.push({ sequenceNo:i+1, image: CategorySub_CategoryData[i]?.icon || '', category_slug: CategorySub_CategoryData[i]?.slug || '', name: CategorySub_CategoryData[i]?.name || '', id: CategorySub_CategoryData[i]?.id || '', parent: CategorySub_CategoryData[i]?.parentId_id || null, type: "section_subcategory"});
+                            }
                         }
                     }
                     else if (Sub_CategoryFilter.length === SubCategoryValue){
@@ -108,7 +113,9 @@ console.log("Filtered",filteredCategory)
                             }
                             let length = (CategorySub_CategoryData.length > SubCategoryValue) ? SubCategoryValue : CategorySub_CategoryData.length; 
                             for (let i = Sub_CategoryFilter.length; i < length; i++) {
-                                newSub_CategoryList.push({ sequenceNo: i+1, image: CategorySub_CategoryData[i].icon, category_slug: CategorySub_CategoryData[i].slug, name: CategorySub_CategoryData[i].name, id: CategorySub_CategoryData[i].id, type: 'section_subcategory', parent: CategorySub_CategoryData[i].parentId_id});
+                                if (CategorySub_CategoryData[i]) {
+                                    newSub_CategoryList.push({ sequenceNo: i+1, image: CategorySub_CategoryData[i]?.icon || '', category_slug: CategorySub_CategoryData[i]?.slug || '', name: CategorySub_CategoryData[i]?.name || '', id: CategorySub_CategoryData[i]?.id || '', type: 'section_subcategory', parent: CategorySub_CategoryData[i]?.parentId_id || null});
+                                }
                             }
                           }
                         else{
@@ -124,7 +131,7 @@ console.log("Filtered",filteredCategory)
 
         // ==========================================subcategories loop ends==========================================
 
-        let parentId=props.value.id; //parent id => for comparison in child component
+        let parentId=props.value?.id; //parent id => for comparison in child component
         let size = (Sub_Category.length > props.SubCategoryValue) ? props.SubCategoryValue : Sub_Category.length;
         return (
             <>

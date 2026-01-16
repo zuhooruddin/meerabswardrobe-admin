@@ -12,8 +12,8 @@ console.log("Section")
 
     if(props.allCategoriesData !== undefined && props.value !== undefined){
         
-        const filteredCategory = props.allCategoriesData.map((item) => ({ sequenceNo: props.index+1, image: item.icon, category_slug: item.slug, name: item.name, id: item.id, type: "box", parent: item.parentId_id}))
-        const filteredData = filteredCategory.filter(({ id: id1 }) => !props.IndividualBoxOrder.some(({ id: id2 }) => id1 === id2) || id1===props.value.id)
+        const filteredCategory = props.allCategoriesData.map((item) => ({ sequenceNo: props.index+1, image: item?.icon || '', category_slug: item?.slug || '', name: item?.name || '', id: item?.id || '', type: "box", parent: item?.parentId_id || null}))
+        const filteredData = filteredCategory.filter(({ id: id1 }) => !props.IndividualBoxOrder.some(({ id: id2 }) => id1 === id2) || id1===(props.value?.id))
         
         return (
             <>
