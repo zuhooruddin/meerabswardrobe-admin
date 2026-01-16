@@ -319,39 +319,42 @@ const CreateProduct = (props) => {
     } else if (
       Math.floor(new Date(Date.now())) < Math.floor(new Date(session.expires))
     ) {
-      formData.append("name", values["name"] || null);
-      formData.append("image", values["image" || null]);
-      formData.append("sku", values["sku"] || null);
+      // Helper function to convert null/undefined to empty string for FormData
+      const formValue = (val) => (val !== null && val !== undefined ? val : '');
+      
+      formData.append("name", formValue(values["name"]));
+      formData.append("image", formValue(values["image"]));
+      formData.append("sku", formValue(values["sku"]));
       formData.append("description", values["description"] || '');
       formData.append("weight", values["weight"] || 0);
       formData.append("manufacturer", values["manufacturer"] || '');
-      formData.append("length", values["length"] ||0);
+      formData.append("length", values["length"] || 0);
       formData.append("height", values["height"] || 0);
       formData.append("width", values["width"] || 0);
-      formData.append("stock", values["stock"] || null);
-      formData.append("mrp", values["mrp"] || null);
-      formData.append("salePrice", values["salePrice"] || null);
-      formData.append("author", values["author"] ||'');
+      formData.append("stock", formValue(values["stock"]));
+      formData.append("mrp", formValue(values["mrp"]));
+      formData.append("salePrice", formValue(values["salePrice"]));
+      formData.append("author", values["author"] || '');
       formData.append("isbn", values["isbn"] || '');
-      formData.append("image", values["imageFile"] || null);
+      formData.append("image", values["imageFile"] || '');
       formData.append("youtube_link", values["youtube_link"] || '');
       formData.append("facebook_link", values["facebook_link"] || '');
       formData.append("twitter_link", values["twitter_link"] || '');
       formData.append("instagram_link", values["instagram_link"] || '');
-      formData.append("slug", values["slug"] || null);
+      formData.append("slug", formValue(values["slug"]));
       formData.append("metaUrl", values["metaUrl"] || '');
       formData.append("metaTitle", values["metaTitle"] || '');
       formData.append("metaDescription", values["metaDescription"] || '');
       formData.append("isNewArrival", values["isNewArrival"] || '');
-      formData.append("newArrivalTill", values["newArrivalTill"] || null);
-      formData.append("isFeatured", values["isFeatured"] || null);
-      formData.append("discount", values["discount"] || null);
+      formData.append("newArrivalTill", formValue(values["newArrivalTill"]));
+      formData.append("isFeatured", formValue(values["isFeatured"]));
+      formData.append("discount", formValue(values["discount"]));
       
       // Clothing-specific fields
       formData.append("brand", values["brand"] || '');
       formData.append("product_category", values["product_category"] || '');
-      formData.append("base_price", values["base_price"] || values["salePrice"] || null);
-      formData.append("discount_price", values["discount_price"] || null);
+      formData.append("base_price", formValue(values["base_price"] || values["salePrice"]));
+      formData.append("discount_price", formValue(values["discount_price"]));
       formData.append("is_active", values["is_active"] !== false ? true : false);
 
       formData.append("extPosId", 0);
